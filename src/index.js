@@ -1,4 +1,4 @@
-const lcjs = require('@arction/lcjs')
+const lcjs = require('@lightningchart/lcjs')
 const { lightningChart, Themes, AxisTickStrategies, emptyTick, AxisScrollStrategies, emptyLine } = lcjs
 
 const lc = lightningChart({
@@ -56,7 +56,6 @@ const LineSeries = (xAxis) => {
     return chart
         .addLineSeries({ dataPattern: { pattern: 'ProgressiveY' }, xAxis })
         .setStrokeStyle((stroke) => stroke.setThickness(1))
-        .setCursorSolveBasis('nearest-y')
         .setDataCleaning({ minDataPointCount: 1 })
 }
 const series1 = LineSeries(axisCh1)
