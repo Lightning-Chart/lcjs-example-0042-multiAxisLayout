@@ -7,7 +7,7 @@ const lc = lightningChart({
 const chart = lc
     .ChartXY({
         defaultAxisY: { type: 'linear-highPrecision' },
-        theme: Themes[new URLSearchParams(window.location.search).get('theme') || 'darkGold'] || undefined
+        theme: Themes[new URLSearchParams(window.location.search).get('theme') || 'darkGold'] || undefined,
     })
     .setTitle('Multi-dimensional Axis Chart')
 const timeAxis = chart
