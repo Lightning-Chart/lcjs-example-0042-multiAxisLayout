@@ -1,5 +1,5 @@
 const lcjs = require('@lightningchart/lcjs')
-const { lightningChart, Themes, AxisTickStrategies, emptyTick, AxisScrollStrategies, emptyLine } = lcjs
+const { lightningChart, Themes, AxisTickStrategies, emptyTick, AxisScrollStrategies, emptyLine, emptyFill } = lcjs
 
 const lc = lightningChart({
             resourcesBaseUrl: new URL(document.head.baseURI).origin + new URL(document.head.baseURI).pathname + 'resources/',
@@ -13,7 +13,6 @@ const chart = lc
 const timeAxis = chart
     .getDefaultAxisY()
     .setScrollStrategy(AxisScrollStrategies.progressive)
-    .setMouseInteractions(false)
     .setTickStrategy(AxisTickStrategies.DateTime, (ticks) =>
         ticks
             .setDateOrigin(new Date())
@@ -31,14 +30,14 @@ const timeAxis = chart
     .setTitle('Time')
 
 chart.getDefaultAxisX().dispose()
-const axisCh1 = chart.addAxisX({ opposite: true, iParallel: 0, iStack: 0 }).setTitle('Ch 1').setMargins(0, 10)
-const axisCh2 = chart.addAxisX({ opposite: true, iParallel: 1, iStack: 0 }).setTitle('Ch 2').setMargins(0, 10)
+const axisCh1 = chart.addAxisX({ opposite: true, iParallel: 0, iStack: 0 }).setTitle('Ch 1').setMargins(0, 5)
+const axisCh2 = chart.addAxisX({ opposite: true, iParallel: 1, iStack: 0 }).setTitle('Ch 2').setMargins(0, 5)
 const emptyAxis1 = chart.addAxisX({ opposite: true, iParallel: 2, iStack: 0 })
 const emptyAxis2 = chart.addAxisX({ opposite: true, iParallel: 3, iStack: 0 })
-const axisCh3 = chart.addAxisX({ opposite: true, iParallel: 0, iStack: 1 }).setTitle('Ch 3').setMargins(10, 0)
-const axisCh4 = chart.addAxisX({ opposite: true, iParallel: 1, iStack: 1 }).setTitle('Ch 4').setMargins(10, 0)
-const axisCh5 = chart.addAxisX({ opposite: true, iParallel: 2, iStack: 1 }).setTitle('Ch 5').setMargins(10, 0)
-const axisCh6 = chart.addAxisX({ opposite: true, iParallel: 3, iStack: 1 }).setTitle('Ch 6').setMargins(10, 0)
+const axisCh3 = chart.addAxisX({ opposite: true, iParallel: 0, iStack: 1 }).setTitle('Ch 3').setMargins(5, 0)
+const axisCh4 = chart.addAxisX({ opposite: true, iParallel: 1, iStack: 1 }).setTitle('Ch 4').setMargins(5, 0)
+const axisCh5 = chart.addAxisX({ opposite: true, iParallel: 2, iStack: 1 }).setTitle('Ch 5').setMargins(5, 0)
+const axisCh6 = chart.addAxisX({ opposite: true, iParallel: 3, iStack: 1 }).setTitle('Ch 6').setMargins(5, 0)
 
 chart.forEachAxisX((axisX) =>
     axisX.setTickStrategy(AxisTickStrategies.Numeric, (ticks) =>
@@ -48,15 +47,16 @@ chart.forEachAxisX((axisX) =>
     ),
 )
 // NOTE: Empty styled axes are accounted in axis layout (unlike completely hidden axes), which is utilized in this example.
-emptyAxis1.setTickStrategy(AxisTickStrategies.Empty).setStrokeStyle(emptyLine).setMouseInteractions(false)
-emptyAxis2.setTickStrategy(AxisTickStrategies.Empty).setStrokeStyle(emptyLine).setMouseInteractions(false)
+emptyAxis1.setTickStrategy(AxisTickStrategies.Empty).setStrokeStyle(emptyLine).setPointerEvents(false)
+emptyAxis2.setTickStrategy(AxisTickStrategies.Empty).setStrokeStyle(emptyLine).setPointerEvents(false)
 
 const LineSeries = (xAxis) => {
-    xAxis.setInterval({ start: 0, end: 300 })
+    xAxis.setDefaultInterval({ start: 0, end: 300 })
     return chart
-        .addLineSeries({ dataPattern: { pattern: 'ProgressiveY' }, xAxis })
+        .addPointLineAreaSeries({ dataPattern: 'ProgressiveY', xAxis })
+        .setAreaFillStyle(emptyFill)
         .setStrokeStyle((stroke) => stroke.setThickness(1))
-        .setDataCleaning({ minDataPointCount: 1 })
+        .setMaxSampleCount(100_000)
 }
 const series1 = LineSeries(axisCh1)
 const series2 = LineSeries(axisCh2)
@@ -82,10 +82,10 @@ const rand6 = RandomTraceData()
 
 setInterval(() => {
     const timeStep = 1000 / 60
-    series1.addArrayX([rand1()], timeStep)
-    series2.addArrayX([rand2()], timeStep)
-    series3.addArrayX([rand3()], timeStep)
-    series4.addArrayX([rand4()], timeStep)
-    series5.addArrayX([rand5()], timeStep)
-    series6.addArrayX([rand6()], timeStep)
+    series1.appendSample({ x: rand1(), step: timeStep })
+    series2.appendSample({ x: rand2(), step: timeStep })
+    series3.appendSample({ x: rand3(), step: timeStep })
+    series4.appendSample({ x: rand4(), step: timeStep })
+    series5.appendSample({ x: rand5(), step: timeStep })
+    series6.appendSample({ x: rand6(), step: timeStep })
 }, 1000 / 60)
