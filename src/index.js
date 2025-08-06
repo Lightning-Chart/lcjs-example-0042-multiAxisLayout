@@ -1,18 +1,19 @@
 const lcjs = require('@lightningchart/lcjs')
-const { lightningChart, Themes, AxisTickStrategies, emptyTick, AxisScrollStrategies, emptyLine, emptyFill } = lcjs
+const { lightningChart, Themes, AxisTickStrategies, emptyTick, AxisScrollStrategies, emptyLine, DataSetXY, emptyFill } = lcjs
 
 const lc = lightningChart({
             resourcesBaseUrl: new URL(document.head.baseURI).origin + new URL(document.head.baseURI).pathname + 'resources/',
         })
 const chart = lc
     .ChartXY({
+        legend: { visible: false },
         defaultAxisY: { type: 'linear-highPrecision' },
         theme: Themes[new URLSearchParams(window.location.search).get('theme') || 'darkGold'] || undefined,
     })
     .setTitle('Multi-dimensional Axis Chart')
 const timeAxis = chart
     .getDefaultAxisY()
-    .setScrollStrategy(AxisScrollStrategies.progressive)
+    .setScrollStrategy(AxisScrollStrategies.scrolling)
     .setTickStrategy(AxisTickStrategies.DateTime, (ticks) =>
         ticks
             .setDateOrigin(new Date())
@@ -28,6 +29,18 @@ const timeAxis = chart
         stopAxisAfter: false,
     }))
     .setTitle('Time')
+
+// Single data set with shared timestamps
+const dataSet = new DataSetXY({
+    schema: {
+        y: {
+            auto: {
+                step: 1000 / 60,
+            },
+        },
+        ...Object.fromEntries(Array.from({ length: 6 }, (_, i) => [`ch${i}`, { pattern: null }])),
+    },
+}).setMaxSampleCount(100_000)
 
 chart.getDefaultAxisX().dispose()
 const axisCh1 = chart.addAxisX({ opposite: true, iParallel: 0, iStack: 0 }).setTitle('Ch 1').setMargins(0, 5)
@@ -50,20 +63,19 @@ chart.forEachAxisX((axisX) =>
 emptyAxis1.setTickStrategy(AxisTickStrategies.Empty).setStrokeStyle(emptyLine).setPointerEvents(false)
 emptyAxis2.setTickStrategy(AxisTickStrategies.Empty).setStrokeStyle(emptyLine).setPointerEvents(false)
 
-const LineSeries = (xAxis) => {
+const LineSeries = (xAxis, ch) => {
     xAxis.setDefaultInterval({ start: 0, end: 300 })
     return chart
-        .addPointLineAreaSeries({ dataPattern: 'ProgressiveY', xAxis })
-        .setAreaFillStyle(emptyFill)
+        .addLineSeries({ xAxis })
         .setStrokeStyle((stroke) => stroke.setThickness(1))
-        .setMaxSampleCount(100_000)
+        .setDataSet(dataSet, { y: 'y', x: `ch${ch}` })
 }
-const series1 = LineSeries(axisCh1)
-const series2 = LineSeries(axisCh2)
-const series3 = LineSeries(axisCh3)
-const series4 = LineSeries(axisCh4)
-const series5 = LineSeries(axisCh5)
-const series6 = LineSeries(axisCh6)
+const series1 = LineSeries(axisCh1, 0)
+const series2 = LineSeries(axisCh2, 1)
+const series3 = LineSeries(axisCh3, 2)
+const series4 = LineSeries(axisCh4, 3)
+const series5 = LineSeries(axisCh5, 4)
+const series6 = LineSeries(axisCh6, 5)
 
 const RandomTraceData = () => {
     let prev = 10 + Math.random() * 190
@@ -81,11 +93,12 @@ const rand5 = RandomTraceData()
 const rand6 = RandomTraceData()
 
 setInterval(() => {
-    const timeStep = 1000 / 60
-    series1.appendSample({ x: rand1(), step: timeStep })
-    series2.appendSample({ x: rand2(), step: timeStep })
-    series3.appendSample({ x: rand3(), step: timeStep })
-    series4.appendSample({ x: rand4(), step: timeStep })
-    series5.appendSample({ x: rand5(), step: timeStep })
-    series6.appendSample({ x: rand6(), step: timeStep })
+    dataSet.appendSample({
+        ch0: rand1(),
+        ch1: rand2(),
+        ch2: rand3(),
+        ch3: rand4(),
+        ch4: rand5(),
+        ch5: rand6(),
+    })
 }, 1000 / 60)
