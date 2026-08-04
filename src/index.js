@@ -1,6 +1,6 @@
 window.lcjsSmallView = window.devicePixelRatio >= 2
 const lcjs = require('@lightningchart/lcjs')
-const { lightningChart, Themes, AxisTickStrategies, emptyTick, AxisScrollStrategies, emptyLine, DataSetXY, emptyFill } = lcjs
+const { lightningChart, Themes, AxisTickStrategies, emptyTick, AxisScrollStrategies, emptyLine, DataSet, emptyFill } = lcjs
 
 const lc = lightningChart({
             resourcesBaseUrl: new URL(document.head.baseURI).origin + new URL(document.head.baseURI).pathname + 'resources/',
@@ -8,7 +8,6 @@ const lc = lightningChart({
 const chart = lc
     .ChartXY({
         legend: { visible: false },
-        defaultAxisY: { type: 'linear-highPrecision' },
         theme: (() => {
     const t = Themes[new URLSearchParams(window.location.search).get('theme') || 'darkGold'] || undefined
     return t && window.lcjsSmallView ? lcjs.scaleTheme(t, 0.5) : t
@@ -36,7 +35,7 @@ const timeAxis = chart
     .setTitle('Time')
 
 // Single data set with shared timestamps
-const dataSet = new DataSetXY({
+const dataSet = new DataSet({
     schema: {
         y: {
             auto: {
